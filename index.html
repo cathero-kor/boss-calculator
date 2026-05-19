@@ -487,6 +487,13 @@
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
     }
+    function setRegionSaveButtonLoading(isLoading) {
+      if (!saveRegionSettingsBtn) return;
+      saveRegionSettingsBtn.disabled = !!isLoading;
+      saveRegionSettingsBtn.innerHTML = isLoading
+        ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
+        : '저장하기';
+    }
     function isBonusApiReady() {
       return BONUS_API_URL && !BONUS_API_URL.includes('PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE');
     }
