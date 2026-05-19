@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -54,18 +53,19 @@
       text-align:center; font-weight:1000; font-size:14px; outline:none; box-shadow:inset 0 2px 3px rgba(0,0,0,.18);
     }
     input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(244,179,33,.25), inset 0 2px 3px rgba(0,0,0,.18); }
-    .member-checks,.server-bonus-options,.speed-options { display:grid; gap:7px; }
+    .member-checks,.server-bonus-options,.speed-options,.boss-match-options { display:grid; gap:7px; }
     .member-checks { grid-template-columns:repeat(auto-fit,minmax(72px,1fr)); }
     .server-bonus-options { grid-template-columns:repeat(6,minmax(0,1fr)); }
     .region-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; }
     .speed-options { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .member-check,.server-bonus-option,.region-option,.speed-option {
+    .boss-match-options { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:8px; }
+    .member-check,.server-bonus-option,.region-option,.speed-option,.boss-match-option {
       min-height:34px; display:flex; justify-content:center; align-items:center; gap:5px; padding:4px;
       color:#eaf0f6; background:linear-gradient(180deg,#4c5661,#313942); border:2px solid #101010; border-radius:4px;
       cursor:pointer; user-select:none; font-size:12px; font-weight:1000; text-shadow:2px 2px 0 #000;
     }
-    .member-check input,.server-bonus-option input,.region-option input,.speed-option input { width:14px; height:14px; box-shadow:none; accent-color:var(--gold); }
-    .member-check.active,.server-bonus-option.active,.region-option.active,.speed-option.active {
+    .member-check input,.server-bonus-option input,.region-option input,.speed-option input,.boss-match-option input { width:14px; height:14px; box-shadow:none; accent-color:var(--gold); }
+    .member-check.active,.server-bonus-option.active,.region-option.active,.speed-option.active,.boss-match-option.active {
       border-color:var(--gold); color:#fff; background:linear-gradient(180deg,#6b7681,#45505a); box-shadow:0 0 0 3px rgba(244,179,33,.22);
     }
 
@@ -250,7 +250,7 @@
       .member-checks { grid-template-columns:repeat(3,minmax(0,1fr)); }
       .server-bonus-options { grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px; }
       .region-options { grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
-      .member-check,.server-bonus-option,.region-option,.speed-option { min-height:31px; font-size:11px; }
+      .member-check,.server-bonus-option,.region-option,.speed-option,.boss-match-option { min-height:31px; font-size:11px; }
       .battle-row {
         grid-template-columns:
           clamp(34px, 6.4vw, 42px)
@@ -340,10 +340,14 @@
 
     <div class="speed-box">
       <div class="speed-card">
-        <div class="speed-title">배속 설정</div>
+        <div id="speedTitle" class="speed-title">배속 및 비율 설정</div>
         <div class="speed-options">
           <label class="speed-option active" for="speed1"><input id="speed1" name="speedMode" type="checkbox" value="1" checked /><span>1배속</span></label>
           <label class="speed-option" for="speed2"><input id="speed2" name="speedMode" type="checkbox" value="2" /><span>2배속</span></label>
+        </div>
+        <div id="bossMatchOptions" class="boss-match-options">
+          <label class="boss-match-option" for="autoRatioMatch"><input id="autoRatioMatch" name="bossMatchMode" type="checkbox" value="ratio" /><span>비율 맞추기</span></label>
+          <label class="boss-match-option" for="autoTimeMatch"><input id="autoTimeMatch" name="bossMatchMode" type="checkbox" value="time" /><span>시간 맞추기</span></label>
         </div>
       </div>
       <div class="server-bonus-card">
@@ -415,7 +419,7 @@
     const TIME_CORRECTION_BASE_SECONDS = 170;
     const TIME_CORRECTION_STEP = 0.05;
     const SPEED_2_PENALTY = 0.0429;
-    const GUILD_MEMBERS = ['국경', '쏘주', '일2탈', 'hsh92', '까미형', '하맹', '제우스', '양삐삐', '꽃순이', '시티즌', '노나나', 'lucete', '쇠돌머리', '안존잘'];
+    const GUILD_MEMBERS = ['국경', '쏘주', '일2탈', 'hsh92', '까미형', '하맹', '제우스맨', '양삐삐', '꽃순이', '시티즌', '노나나', 'lucete', '쇠돌머리', '안존잘'];
     const SERVER_BONUS_VALUES = [1, 2, 3, 4, 5, 6];
     const REGION_BONUS_TYPES = [
       { key: 'pirate', label: '해적' },
@@ -423,7 +427,7 @@
       { key: 'wolf', label: '늑대' },
       { key: 'food', label: '음식' }
     ];
-    const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':118.5,'까미형':55,'하맹':78.5,'제우스':66,'양삐삐':68,'꽃순이':57,'시티즌':0,'노나나':0,'lucete':0,'쇠돌머리':0,'안존잘':0};
+    const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':118.5,'까미형':55,'하맹':78.5,'제우스맨':66,'양삐삐':68,'꽃순이':57,'시티즌':0,'노나나':0,'lucete':0,'쇠돌머리':0,'안존잘':0};
     // ✅ Apps Script 웹앱 배포 URL을 여기에 붙여넣으세요.
     // 예: https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxxxxxx/exec
     const BONUS_API_URL = 'https://script.google.com/macros/s/AKfycbytnBFnhy0xDLSwNaLwaLU7XBkbENJZIm0bBc3gj8ARMg7ITzzOu5e-wdGzug99SqVw2g/exec';
@@ -442,6 +446,10 @@
     const totalAssignedHpEl = document.getElementById('totalAssignedHp');
     const finalAverageTimeEl = document.getElementById('finalAverageTime');
     const finalResultListEl = document.getElementById('finalResultList');
+    const speedTitleEl = document.getElementById('speedTitle');
+    const bossMatchOptionsEl = document.getElementById('bossMatchOptions');
+    const autoRatioMatchInput = document.getElementById('autoRatioMatch');
+    const autoTimeMatchInput = document.getElementById('autoTimeMatch');
     const speed1Input = document.getElementById('speed1');
     const speed2Input = document.getElementById('speed2');
     const openBonusSettingsBtn = document.getElementById('openBonusSettings');
@@ -464,6 +472,7 @@
     let serverBattleBonus = 0;
     let selectedRegionKey = '';
     let calculatorMode = 'boss';
+    let bossMatchMode = '';
 
     const players = Array.from({ length: MAX_PLAYERS }, (_, index) => ({
       name: GUILD_MEMBERS[index] || `${index + 1}P`,
@@ -685,6 +694,68 @@
     }
     function formatAverageTime(seconds) { return formatMinuteSecond(Math.round(numberOrZero(seconds))); }
     function getActiveIndexes() { return players.map((player,index) => player.active ? index : -1).filter(index => index >= 0); }
+    function setBossMatchMode(mode) {
+      bossMatchMode = (mode === 'ratio' || mode === 'time') ? mode : '';
+      updateBossMatchUI();
+      updateView();
+    }
+    function updateBossMatchUI() {
+      if (!autoRatioMatchInput || !autoTimeMatchInput) return;
+      autoRatioMatchInput.checked = bossMatchMode === 'ratio';
+      autoTimeMatchInput.checked = bossMatchMode === 'time';
+      autoRatioMatchInput.closest('.boss-match-option').classList.toggle('active', bossMatchMode === 'ratio');
+      autoTimeMatchInput.closest('.boss-match-option').classList.toggle('active', bossMatchMode === 'time');
+    }
+    function distributeBossRatiosByBonus(activeIndexes) {
+      if (!activeIndexes.length) return;
+      const count = activeIndexes.length;
+      const baseRatio = Math.floor((100 / count) * 100) / 100;
+      let remain = 100;
+      activeIndexes.forEach((index, order) => {
+        const ratio = order === activeIndexes.length - 1
+          ? Math.round(remain * 100) / 100
+          : baseRatio;
+        players[index].ratio = Math.max(0, ratio);
+        players[index].mode = 'ratio';
+        remain -= ratio;
+      });
+    }
+    function getTotalBossDamageAtTime(activeIndexes, seconds) {
+      return activeIndexes.reduce((sum, index) => sum + (seconds * getDps(players[index], seconds)), 0);
+    }
+    function findCommonBossTime(activeIndexes) {
+      const bossHp = getBossHp();
+      if (!activeIndexes.length || bossHp <= 0) return 0;
+      let low = 0;
+      let high = Math.max(1, TIME_CORRECTION_BASE_SECONDS);
+      let guard = 0;
+      while (getTotalBossDamageAtTime(activeIndexes, high) < bossHp && guard < 24) {
+        high *= 2;
+        guard += 1;
+      }
+      for (let i = 0; i < 42; i++) {
+        const mid = (low + high) / 2;
+        if (getTotalBossDamageAtTime(activeIndexes, mid) >= bossHp) high = mid;
+        else low = mid;
+      }
+      return ceilNumber(high);
+    }
+    function applyBossAutoMatch() {
+      if (calculatorMode !== 'boss' || !bossMatchMode) return;
+      const activeIndexes = getActiveIndexes();
+      if (!activeIndexes.length) return;
+      if (bossMatchMode === 'ratio') {
+        distributeBossRatiosByBonus(activeIndexes);
+        return;
+      }
+      if (bossMatchMode === 'time') {
+        const commonTime = findCommonBossTime(activeIndexes);
+        activeIndexes.forEach(index => {
+          players[index].time = commonTime;
+          players[index].mode = 'time';
+        });
+      }
+    }
     function resetRatiosForActivePlayers() {
       const activeIndexes = getActiveIndexes(); const count = activeIndexes.length;
       players.forEach(player => { if (!player.active) { player.ratio = 0; player.mode = 'ratio'; } });
@@ -765,6 +836,8 @@
     function setCalculatorMode(mode) {
       calculatorMode = mode === 'strike' ? 'strike' : 'boss';
       if (calculatorMode === 'strike') {
+        bossMatchMode = '';
+        updateBossMatchUI();
         players.forEach(player => {
           if (player.mode !== 'time' && player.mode !== 'score') player.mode = 'time';
           if (!Number.isFinite(numberOrZero(player.score))) player.score = 0;
@@ -786,6 +859,9 @@
       bossHpCard.style.display = isStrike ? 'none' : '';
       serverBonusCard.style.display = '';
       regionSelectCard.style.display = isStrike ? 'block' : 'none';
+      speedTitleEl.textContent = isStrike ? '배속 설정' : '배속 및 비율 설정';
+      bossMatchOptionsEl.style.display = isStrike ? 'none' : 'grid';
+      updateBossMatchUI();
       averageSummaryEl.style.display = isStrike ? 'none' : '';
       summaryEl.style.display = isStrike ? 'none' : '';
       finalAverageTimeEl.style.display = isStrike ? 'none' : '';
@@ -852,7 +928,7 @@
             players[index].bonus = players[index].baseBonus;
             if (selectedRegionKey) players[index].regionBonus = numberOrZero((players[index].regionBonuses || {})[selectedRegionKey]);
           }
-          if (calculatorMode === 'boss') resetRatiosForActivePlayers();
+          if (calculatorMode === 'boss' && !bossMatchMode) resetRatiosForActivePlayers();
           updateMemberCheckUI(); updateView();
         });
       });
@@ -901,6 +977,7 @@
       updateBossView();
     }
     function updateBossView() {
+      applyBossAutoMatch();
       const activeIndexes = getActiveIndexes(); let totalRatio = 0; let totalAssignedHp = 0; let totalTime = 0;
       document.querySelectorAll('#playerBody tr').forEach(row => {
         const index = Number(row.dataset.index); const player = players[index]; const visible = activeIndexes.includes(index);
@@ -988,6 +1065,8 @@
     bossHpInput.addEventListener('input', updateView);
     speed1Input.addEventListener('change', () => setSpeedMode('1'));
     speed2Input.addEventListener('change', () => setSpeedMode('2'));
+    autoRatioMatchInput.addEventListener('change', event => setBossMatchMode(event.target.checked ? 'ratio' : ''));
+    autoTimeMatchInput.addEventListener('change', event => setBossMatchMode(event.target.checked ? 'time' : ''));
     openBonusSettingsBtn.addEventListener('click', openBonusSettings);
     openStrikeCalculatorBtn.addEventListener('click', () => setCalculatorMode(calculatorMode === 'strike' ? 'boss' : 'strike'));
     openRegionSettingsBtn.addEventListener('click', openRegionSettings);
@@ -997,7 +1076,7 @@
     regionBonusModalBackdrop.addEventListener('click', event => { if (event.target === regionBonusModalBackdrop) closeRegionSettings(); });
     saveBonusSettingsBtn.addEventListener('click', saveSharedBonuses);
     saveRegionSettingsBtn.addEventListener('click', saveSharedRegionBonuses);
-    updateSpeedUI(); buildServerBonusOptions(); buildRegionOptions(); buildMemberChecks(); updateCalculatorModeUI(); buildRows(); renderBonusSettingsInputs(); renderRegionSettingsInputs(); loadSharedBonuses(false); loadSharedRegionBonuses(false);
+    updateSpeedUI(); updateBossMatchUI(); buildServerBonusOptions(); buildRegionOptions(); buildMemberChecks(); updateCalculatorModeUI(); buildRows(); renderBonusSettingsInputs(); renderRegionSettingsInputs(); loadSharedBonuses(false); loadSharedRegionBonuses(false);
   </script>
 </body>
 </html>
