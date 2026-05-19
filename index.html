@@ -567,7 +567,7 @@
     }
     function applySelectedRegionToPlayers() {
       players.forEach(player => {
-        player.regionBonus = selectedRegionKey ? numberOrZero((player.regionBonuses || {})[selectedRegionKey]) : numberOrZero(player.regionBonus);
+        player.regionBonus = selectedRegionKey ? numberOrZero((player.regionBonuses || {})[selectedRegionKey]) : 0;
       });
     }
     async function loadSharedRegionBonuses(showAlert = false) {
