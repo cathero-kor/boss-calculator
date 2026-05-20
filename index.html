@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -63,6 +64,7 @@
       min-height:34px; display:flex; justify-content:center; align-items:center; gap:5px; padding:4px;
       color:#eaf0f6; background:linear-gradient(180deg,#4c5661,#313942); border:2px solid #101010; border-radius:4px;
       cursor:pointer; user-select:none; font-size:12px; font-weight:1000; text-shadow:2px 2px 0 #000;
+      font-family:inherit; appearance:none; -webkit-appearance:none;
     }
     .member-check input,.server-bonus-option input,.region-option input,.speed-option input,.boss-match-option input { width:14px; height:14px; box-shadow:none; accent-color:var(--gold); }
     .member-check.active,.server-bonus-option.active,.region-option.active,.speed-option.active,.boss-match-option.active {
@@ -346,8 +348,8 @@
           <label class="speed-option" for="speed2"><input id="speed2" name="speedMode" type="checkbox" value="2" /><span>2배속</span></label>
         </div>
         <div id="bossMatchOptions" class="boss-match-options">
-          <label class="boss-match-option" for="autoRatioMatch"><input id="autoRatioMatch" name="bossMatchMode" type="checkbox" value="ratio" /><span>비율 맞추기</span></label>
-          <label class="boss-match-option" for="autoTimeMatch"><input id="autoTimeMatch" name="bossMatchMode" type="checkbox" value="time" /><span>시간 맞추기</span></label>
+          <button id="autoRatioMatch" class="boss-match-option" type="button">비율 맞추기</button>
+          <button id="autoTimeMatch" class="boss-match-option" type="button">시간 맞추기</button>
         </div>
       </div>
       <div class="server-bonus-card">
@@ -419,7 +421,7 @@
     const TIME_CORRECTION_BASE_SECONDS = 170;
     const TIME_CORRECTION_STEP = 0.05;
     const SPEED_2_PENALTY = 0.0429;
-    const GUILD_MEMBERS = ['국경', '쏘주', '일2탈', 'hsh92', '까미형', '하맹', '제우스맨', '양삐삐', '꽃순이', '시티즌', '노나나', 'lucete', '쇠돌머리', '안존잘'];
+    const GUILD_MEMBERS = ['국경', '쏘주', '일2탈', 'hsh92', '까미형', '하맹', '제우스', '양삐삐', '꽃순이', '시티즌', '노나나', 'lucete', '쇠돌머리', '안존잘'];
     const SERVER_BONUS_VALUES = [1, 2, 3, 4, 5, 6];
     const REGION_BONUS_TYPES = [
       { key: 'pirate', label: '해적' },
@@ -427,7 +429,7 @@
       { key: 'wolf', label: '늑대' },
       { key: 'food', label: '음식' }
     ];
-    const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':118.5,'까미형':55,'하맹':78.5,'제우스맨':66,'양삐삐':68,'꽃순이':57,'시티즌':0,'노나나':0,'lucete':0,'쇠돌머리':0,'안존잘':0};
+    const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':118.5,'까미형':55,'하맹':78.5,'제우스':66,'양삐삐':68,'꽃순이':57,'시티즌':0,'노나나':0,'lucete':0,'쇠돌머리':0,'안존잘':0};
     // ✅ Apps Script 웹앱 배포 URL을 여기에 붙여넣으세요.
     // 예: https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxxxxxx/exec
     const BONUS_API_URL = 'https://script.google.com/macros/s/AKfycbytnBFnhy0xDLSwNaLwaLU7XBkbENJZIm0bBc3gj8ARMg7ITzzOu5e-wdGzug99SqVw2g/exec';
@@ -694,17 +696,27 @@
     }
     function formatAverageTime(seconds) { return formatMinuteSecond(Math.round(numberOrZero(seconds))); }
     function getActiveIndexes() { return players.map((player,index) => player.active ? index : -1).filter(index => index >= 0); }
-    function setBossMatchMode(mode) {
-      bossMatchMode = (mode === 'ratio' || mode === 'time') ? mode : '';
+    function applyBossMatchOnce(mode) {
+      if (calculatorMode !== 'boss') return;
+      const activeIndexes = getActiveIndexes();
+      if (!activeIndexes.length) return;
+      if (mode === 'ratio') {
+        distributeBossRatiosByBonus(activeIndexes);
+      } else if (mode === 'time') {
+        const commonTime = findCommonBossTime(activeIndexes);
+        activeIndexes.forEach(index => {
+          players[index].time = commonTime;
+          players[index].mode = 'time';
+        });
+      }
+      bossMatchMode = '';
       updateBossMatchUI();
       updateView();
     }
     function updateBossMatchUI() {
       if (!autoRatioMatchInput || !autoTimeMatchInput) return;
-      autoRatioMatchInput.checked = bossMatchMode === 'ratio';
-      autoTimeMatchInput.checked = bossMatchMode === 'time';
-      autoRatioMatchInput.closest('.boss-match-option').classList.toggle('active', bossMatchMode === 'ratio');
-      autoTimeMatchInput.closest('.boss-match-option').classList.toggle('active', bossMatchMode === 'time');
+      autoRatioMatchInput.classList.remove('active');
+      autoTimeMatchInput.classList.remove('active');
     }
     function distributeBossRatiosByBonus(activeIndexes) {
       if (!activeIndexes.length) return;
@@ -1065,8 +1077,8 @@
     bossHpInput.addEventListener('input', updateView);
     speed1Input.addEventListener('change', () => setSpeedMode('1'));
     speed2Input.addEventListener('change', () => setSpeedMode('2'));
-    autoRatioMatchInput.addEventListener('change', event => setBossMatchMode(event.target.checked ? 'ratio' : ''));
-    autoTimeMatchInput.addEventListener('change', event => setBossMatchMode(event.target.checked ? 'time' : ''));
+    autoRatioMatchInput.addEventListener('click', () => applyBossMatchOnce('ratio'));
+    autoTimeMatchInput.addEventListener('click', () => applyBossMatchOnce('time'));
     openBonusSettingsBtn.addEventListener('click', openBonusSettings);
     openStrikeCalculatorBtn.addEventListener('click', () => setCalculatorMode(calculatorMode === 'strike' ? 'boss' : 'strike'));
     openRegionSettingsBtn.addEventListener('click', openRegionSettings);
