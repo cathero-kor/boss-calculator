@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -36,7 +37,15 @@
       padding:11px 12px; margin-bottom:10px; background:linear-gradient(180deg,#37424c,#222931);
       border:3px solid #080808; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
     }
-    h1 { margin:0; font-size:clamp(22px,4vw,30px); color:#fff; text-shadow:3px 3px 0 #000; letter-spacing:-.7px; }
+    h1 { margin:0; font-size:clamp(22px,4vw,30px); color:#fff; text-shadow:3px 3px 0 #000; letter-spacing:-.7px; cursor:pointer; }
+    .visitor-stats {
+      display:none; align-items:center; gap:8px; flex-wrap:wrap; padding:5px 8px;
+      color:#fff; font-size:12px; font-weight:1000; text-shadow:2px 2px 0 #000;
+      background:rgba(0,0,0,.28); border:2px solid rgba(255,213,106,.45); border-radius:5px;
+    }
+    .visitor-stats.show { display:flex; }
+    .visitor-stats span { white-space:nowrap; color:var(--cream); }
+    .visitor-stats strong { color:var(--gold2); margin-left:3px; }
     .brand { color:var(--cream); font-weight:1000; text-shadow:2px 2px 0 #000; font-size:13px; }
     .desc {
       margin:0 0 12px; padding:10px 12px; color:#f2e5c8; line-height:1.45; font-size:13px;
@@ -346,7 +355,11 @@
 <body>
   <div class="wrap">
     <div class="title-row">
-      <h1>상층 보스 계산기</h1>
+      <h1 id="calculatorTitle">상층 보스 계산기</h1>
+      <div id="visitorStats" class="visitor-stats" aria-live="polite">
+        <span>today <strong id="visitorToday">-</strong></span>
+        <span>total <strong id="visitorTotal">-</strong></span>
+      </div>
       <div class="brand">호랑길드 <span class="by">by 시티즌</span></div>
     </div>
     <p id="calculatorDesc" class="desc">
@@ -522,9 +535,12 @@ const REGION_BONUS_TYPES = [
 const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':118.5,'까미형':55,'하맹':78.5,'제우스':66,'양삐삐':68,'꽃순이':57,'시티즌':0,'노나나':0,'lucete':0,'쇠돌머리':0,'안존잘':0,'온과':0,'쭈야네':0};
     // ✅ Apps Script 웹앱 배포 URL을 여기에 붙여넣으세요.
     // 예: https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxxxxxx/exec
-    const BONUS_API_URL = 'https://script.google.com/macros/s/AKfycbw2f6L87OI3lgQRGIKlDdauC37RDWiNFOaLaNqbXomAmpX7IwRh3KnPbMAvz2BEK3p5-w/exec';
+    const BONUS_API_URL = 'https://script.google.com/macros/s/AKfycbz3mOVD9QFCXkUoD1ecc-5E9OE0fN0IMsb-5ZP72PdTh6M57l7LuFrgSP7pwGn7P3fx/exec';
 
-    const calculatorTitleEl = document.querySelector('h1');
+    const calculatorTitleEl = document.getElementById('calculatorTitle') || document.querySelector('h1');
+    const visitorStatsEl = document.getElementById('visitorStats');
+    const visitorTodayEl = document.getElementById('visitorToday');
+    const visitorTotalEl = document.getElementById('visitorTotal');
     const calculatorDescEl = document.getElementById('calculatorDesc');
     const bossHpInput = document.getElementById('bossHp');
     const bossOptionsEl = document.getElementById('bossOptions');
@@ -652,6 +668,43 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
         };
         script.src = `${BONUS_API_URL}?${query.toString()}`;
         document.body.appendChild(script);
+      });
+    }
+    function formatCount(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? Math.max(0, Math.floor(n)).toLocaleString('ko-KR') : '-';
+    }
+    function setVisitorStats(stats = {}) {
+      if (visitorTodayEl) visitorTodayEl.textContent = formatCount(stats.today);
+      if (visitorTotalEl) visitorTotalEl.textContent = formatCount(stats.total);
+    }
+    function showVisitorStats() {
+      if (!visitorStatsEl) return;
+      visitorStatsEl.classList.add('show');
+      visitorStatsEl.setAttribute('aria-hidden', 'false');
+    }
+    async function countVisitAndLoadStats() {
+      try {
+        const data = await callBonusApi({ action: 'countVisit' });
+        setVisitorStats(data.visitors || {});
+      } catch (error) {
+        setVisitorStats({ today: '-', total: '-' });
+      }
+    }
+    function bindTitleSecretClicks() {
+      if (!calculatorTitleEl) return;
+      let titleClickCount = 0;
+      let titleClickTimer = null;
+      calculatorTitleEl.addEventListener('click', () => {
+        titleClickCount += 1;
+        clearTimeout(titleClickTimer);
+        titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 1200);
+        if (titleClickCount < 3) return;
+        titleClickCount = 0;
+        clearTimeout(titleClickTimer);
+        showVisitorStats();
+        // 페이지 진입 시 countVisit로 받아둔 today/total 값을 그대로 보여준다.
+        // getVisitStats를 추가 호출하면 시트 날짜 형식 문제로 today가 0으로 덮어써질 수 있어 재호출하지 않는다.
       });
     }
     function getBaseBonusMap() {
@@ -901,7 +954,11 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
       });
     }
     function getTotalBossDamageAtTime(activeIndexes, seconds) {
-      return activeIndexes.reduce((sum, index) => sum + (seconds * getDps(players[index], seconds)), 0);
+      return activeIndexes.reduce((sum, index) => {
+        const player = players[index];
+        const minScoreBonus = Math.max(0, numberOrZero(player.minScoreBonus));
+        return sum + (seconds * getDps(player, seconds)) + minScoreBonus;
+      }, 0);
     }
     function findCommonBossTime(activeIndexes) {
       const bossHp = getBossHp();
@@ -1020,16 +1077,31 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     }
     function calculatePlayer(player) {
       const bossHp = getBossHp();
+      const minScoreBonus = Math.max(0, numberOrZero(player.minScoreBonus));
       if (player.mode === 'time') {
-        const time = ceilNumber(numberOrZero(player.time)); const dps = getDps(player, time); const realDamage = time * dps;
-        player.time = time; player.ratio = bossHp > 0 ? (realDamage / bossHp) * 100 : 0;
+        const time = ceilNumber(numberOrZero(player.time));
+        const dps = getDps(player, time);
+        const realDamage = time * dps;
+        const finalDamage = realDamage + minScoreBonus;
+        player.time = time;
+        player.ratio = bossHp > 0 ? (finalDamage / bossHp) * 100 : 0;
       } else {
-        const assignedHpByRatio = bossHp * (numberOrZero(player.ratio) / 100);
-        player.time = calculateTimeFromRatio(player, assignedHpByRatio);
+        const targetAssignedHp = bossHp * (numberOrZero(player.ratio) / 100);
+        const requiredDamageByTime = Math.max(0, targetAssignedHp - minScoreBonus);
+        player.time = calculateTimeFromRatio(player, requiredDamageByTime);
       }
-      const assignedHp = bossHp * (numberOrZero(player.ratio) / 100);
+      const targetAssignedHp = bossHp * (numberOrZero(player.ratio) / 100);
+      const assignedHp = Math.max(targetAssignedHp, minScoreBonus);
+      const baseAssignedHp = Math.max(0, assignedHp - minScoreBonus);
       const dps = getDps(player, player.time);
-      return { dps, assignedHp, time: ceilNumber(player.time), ratio: numberOrZero(player.ratio) };
+      return {
+        dps,
+        baseAssignedHp,
+        assignedHp,
+        minScoreBonus,
+        time: ceilNumber(player.time),
+        ratio: numberOrZero(player.ratio)
+      };
     }
     function calculateStrikePlayer(player) {
       const minScoreBonus = Math.max(0, numberOrZero(player.minScoreBonus));
@@ -1344,7 +1416,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     saveBonusSettingsBtn.addEventListener('click', saveSharedBonuses);
     saveMinScoreSettingsBtn.addEventListener('click', saveSharedMinScoreBonuses);
     saveRegionSettingsBtn.addEventListener('click', saveSharedRegionBonuses);
-    updateSpeedUI(); updateBossMatchUI(); buildBossOptions(); buildServerBonusOptions(); buildRegionOptions(); buildMemberChecks(); updateCalculatorModeUI(); buildRows(); renderBonusSettingsInputs(); renderMinScoreSettingsInputs(); renderRegionSettingsInputs(); loadSharedBonuses(false); loadSharedMinScoreBonuses(false); loadSharedRegionBonuses(false);
+    updateSpeedUI(); updateBossMatchUI(); buildBossOptions(); buildServerBonusOptions(); buildRegionOptions(); buildMemberChecks(); updateCalculatorModeUI(); buildRows(); renderBonusSettingsInputs(); renderMinScoreSettingsInputs(); renderRegionSettingsInputs(); bindTitleSecretClicks(); countVisitAndLoadStats(); loadSharedBonuses(false); loadSharedMinScoreBonuses(false); loadSharedRegionBonuses(false);
   </script>
 </body>
 </html>
