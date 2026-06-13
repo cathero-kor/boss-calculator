@@ -3,6 +3,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -393,8 +395,8 @@
       <div class="speed-card">
         <div id="speedTitle" class="speed-title">배속 및 비율 설정</div>
         <div class="speed-options">
-          <label class="speed-option active" for="speed1"><input id="speed1" name="speedMode" type="checkbox" value="1" checked /><span>1배속</span></label>
-          <label class="speed-option" for="speed2"><input id="speed2" name="speedMode" type="checkbox" value="2" /><span>2배속</span></label>
+          <label class="speed-option" for="speed1"><input id="speed1" name="speedMode" type="checkbox" value="1" /><span>1배속</span></label>
+          <label class="speed-option active" for="speed2"><input id="speed2" name="speedMode" type="checkbox" value="2" checked /><span>2배속</span></label>
         </div>
         <div id="bossMatchOptions" class="boss-match-options">
           <button id="autoRatioMatch" class="boss-match-option" type="button">비율 맞추기</button>
@@ -590,7 +592,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     const remainingTargetSecInput = document.getElementById('remainingTargetSec');
     const remainingTimeResultEl = document.getElementById('remainingTimeResult');
 
-    let speedMode = '1';
+    let speedMode = '2';
     let serverBattleBonus = 0;
     let selectedRegionKey = '';
     let calculatorMode = 'boss';
@@ -918,26 +920,16 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function formatAverageTime(seconds) { return formatMinuteSecond(Math.round(numberOrZero(seconds))); }
     function getActiveIndexes() { return players.map((player,index) => player.active ? index : -1).filter(index => index >= 0); }
     function applyBossMatchOnce(mode) {
-      if (calculatorMode !== 'boss') return;
-      const activeIndexes = getActiveIndexes();
-      if (!activeIndexes.length) return;
-      if (mode === 'ratio') {
-        distributeBossRatiosByBonus(activeIndexes);
-      } else if (mode === 'time') {
-        const commonTime = findCommonBossTime(activeIndexes);
-        activeIndexes.forEach(index => {
-          players[index].time = commonTime;
-          players[index].mode = 'time';
-        });
-      }
-      bossMatchMode = '';
-      updateBossMatchUI();
-      updateView();
-    }
+  if (calculatorMode !== 'boss') return;
+  const nextMode = mode === 'time' ? 'time' : 'ratio';
+  bossMatchMode = bossMatchMode === nextMode ? '' : nextMode;
+  updateBossMatchUI();
+  updateView();
+}
     function updateBossMatchUI() {
       if (!autoRatioMatchInput || !autoTimeMatchInput) return;
-      autoRatioMatchInput.classList.remove('active');
-      autoTimeMatchInput.classList.remove('active');
+      autoRatioMatchInput.classList.toggle('active', calculatorMode === 'boss' && bossMatchMode === 'ratio');
+      autoTimeMatchInput.classList.toggle('active', calculatorMode === 'boss' && bossMatchMode === 'time');
     }
     function distributeBossRatiosByBonus(activeIndexes) {
       if (!activeIndexes.length) return;
