@@ -40,15 +40,7 @@
       padding:11px 12px; margin-bottom:10px; background:linear-gradient(180deg,#37424c,#222931);
       border:3px solid #080808; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
     }
-    h1 { margin:0; font-size:clamp(22px,4vw,30px); color:#fff; text-shadow:3px 3px 0 #000; letter-spacing:-.7px; cursor:pointer; }
-    .visitor-stats {
-      display:none; align-items:center; gap:8px; flex-wrap:wrap; padding:5px 8px;
-      color:#fff; font-size:12px; font-weight:1000; text-shadow:2px 2px 0 #000;
-      background:rgba(0,0,0,.28); border:2px solid rgba(255,213,106,.45); border-radius:5px;
-    }
-    .visitor-stats.show { display:flex; }
-    .visitor-stats span { white-space:nowrap; color:var(--cream); }
-    .visitor-stats strong { color:var(--gold2); margin-left:3px; }
+    h1 { margin:0; font-size:clamp(22px,4vw,30px); color:#fff; text-shadow:3px 3px 0 #000; letter-spacing:-.7px; }
     .brand { color:var(--cream); font-weight:1000; text-shadow:2px 2px 0 #000; font-size:13px; }
     .desc {
       margin:0 0 12px; padding:10px 12px; color:#f2e5c8; line-height:1.45; font-size:13px;
@@ -139,6 +131,11 @@
     .mini-title {
       color:#dbe4ee; font-size:10px; line-height:1; font-weight:1000; margin:0; text-shadow:2px 2px 0 #000;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; width:100%; align-self:end;
+    }
+    .bonus-loading-label {
+      width:100%; height:30px; display:flex; align-items:center; justify-content:center;
+      color:#101820; background:#eef2f5; border:2px solid #101010; border-radius:4px;
+      font-size:11px; font-weight:1000; white-space:nowrap; text-shadow:none;
     }
     .battle-row input { width:100%; height:30px; font-size:13px; padding:0 2px; align-self:center; justify-self:center; }
     .bonus-cell-inner { display:contents; }
@@ -253,14 +250,26 @@
     .bonus-modal-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:10px; }
     .bonus-modal-title { margin:0; font-size:21px; color:#fff; text-shadow:3px 3px 0 #000; }
     .bonus-title-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-    .min-score-open-btn {
+    .min-score-open-btn,.upper2-open-btn {
       min-height:28px; padding:0 10px; color:#fff; font-size:12px;
-      background:linear-gradient(180deg,#f59e0b,#b45309 55%,#78350f);
     }
+    .min-score-open-btn { background:linear-gradient(180deg,#f59e0b,#b45309 55%,#78350f); }
+    .upper2-open-btn { background:linear-gradient(180deg,#22c55e,#15803d 55%,#14532d); }
     .bonus-modal-desc { margin:6px 0 0; color:#ffe3a9; font-size:12px; line-height:1.55; font-weight:800; white-space:pre-line; }
     .bonus-modal-btn:disabled { cursor:not-allowed; opacity:.82; transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.18); }
     .bonus-spinner { width:16px; height:16px; border:3px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; display:inline-block; vertical-align:-3px; margin-right:7px; animation:bonusSpin .72s linear infinite; }
     @keyframes bonusSpin { to { transform:rotate(360deg); } }
+    .save-loading-panel {
+      display:none; flex-direction:column; align-items:center; justify-content:center; gap:9px;
+      width:100%; padding:12px 0 4px; color:var(--gold2); font-size:15px; font-weight:1000;
+      text-align:center; text-shadow:2px 2px 0 #000;
+    }
+    .save-loading-panel.show { display:flex; }
+    .save-loading-spinner {
+      width:50px; height:50px; border:6px solid rgba(255,255,255,.22); border-top-color:var(--gold2);
+      border-radius:50%; animation:bonusSpin .72s linear infinite;
+      box-shadow:0 0 14px rgba(255,213,106,.25);
+    }
     .bonus-close-btn {
       width:34px; height:34px; border:2px solid #111; border-radius:5px; cursor:pointer; color:#fff; font-size:20px; font-weight:1000;
       background:linear-gradient(180deg,#ff6b6b,#9b1111); text-shadow:2px 2px 0 #000;
@@ -285,6 +294,7 @@
     .region-edit-item input { height:32px; font-size:13px; }
     .bonus-modal-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
     .bonus-save-btn { min-height:40px; padding:0 18px; color:#fff; background:linear-gradient(180deg,#34d399,#078047); }
+    .bonus-bottom-close-btn { min-height:40px; padding:0 18px; color:#fff; background:linear-gradient(180deg,#6b7280,#4b5563 55%,#374151); }
 
     @media (max-width:680px) {
       body { padding:10px 5px; }
@@ -322,7 +332,7 @@
       .time-text,.server-bonus-text { min-height:9px; }
       .desc { font-size:12px; }
       .bonus-edit-grid { grid-template-columns:1fr; }
-      .min-score-open-btn { width:100%; margin-top:4px; }
+      .min-score-open-btn,.upper2-open-btn { width:100%; margin-top:4px; }
       .region-edit-header { display:none; }
       .region-edit-item { grid-template-columns:1fr 1fr; gap:7px; }
       .region-edit-name { grid-column:1 / -1; }
@@ -359,10 +369,6 @@
   <div class="wrap">
     <div class="title-row">
       <h1 id="calculatorTitle">상층 보스 계산기</h1>
-      <div id="visitorStats" class="visitor-stats" aria-live="polite">
-        <span>today <strong id="visitorToday">-</strong></span>
-        <span>total <strong id="visitorTotal">-</strong></span>
-      </div>
       <div class="brand">호랑길드 <span class="by">by 시티즌</span></div>
     </div>
     <p id="calculatorDesc" class="desc">
@@ -434,7 +440,7 @@
     <div class="bonus-modal" role="dialog" aria-modal="true" aria-labelledby="bonusModalTitle">
       <div class="bonus-modal-head">
         <div>
-          <div class="bonus-title-row"><h2 id="bonusModalTitle" class="bonus-modal-title">격추 기본값 설정</h2><button id="openMinScoreSettings" class="bonus-modal-btn min-score-open-btn" type="button">최소 점수 증가 설정</button></div>
+          <div class="bonus-title-row"><h2 id="bonusModalTitle" class="bonus-modal-title">격추 기본값 설정</h2><button id="openMinScoreSettings" class="bonus-modal-btn min-score-open-btn" type="button">최소 점수 증가 설정</button><button id="openUpper2Settings" class="bonus-modal-btn upper2-open-btn" type="button">상층2 추가 점수 설정</button></div>
           <p class="bonus-modal-desc">격추 값을 변경 할 수 있는 페이지 입니다.
 변경된 본인의 격추값만 수정 부탁드립니다.
 길드퀘스트(길드게시판) 격추는 제외하고 프로필에 기재된 격추를 작성해주세요
@@ -443,8 +449,10 @@
         <button id="closeBonusSettings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
       </div>
       <div id="bonusEditGrid" class="bonus-edit-grid"></div>
+      <div id="saveBonusLoading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
       <div class="bonus-modal-actions">
         <button id="saveBonusSettings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
+        <button id="closeBonusSettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
       </div>
     </div>
   </div>
@@ -459,8 +467,29 @@
         <button id="closeMinScoreSettings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
       </div>
       <div id="minScoreEditGrid" class="bonus-edit-grid"></div>
+      <div id="saveMinScoreLoading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
       <div class="bonus-modal-actions">
         <button id="saveMinScoreSettings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
+        <button id="closeMinScoreSettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="upper2ModalBackdrop" class="bonus-modal-backdrop" aria-hidden="true">
+    <div class="bonus-modal" role="dialog" aria-modal="true" aria-labelledby="upper2ModalTitle">
+      <div class="bonus-modal-head">
+        <div>
+          <h2 id="upper2ModalTitle" class="bonus-modal-title">상층2 추가 점수 설정</h2>
+          <p class="bonus-modal-desc">상층 보스(바나냥, 루나, 루니, 루이) 계산에만 적용되는 추가 격추값입니다.
+저장한 값은 기존 격추값에 +n% 방식으로 합산됩니다.</p>
+        </div>
+        <button id="closeUpper2Settings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
+      </div>
+      <div id="upper2EditGrid" class="bonus-edit-grid"></div>
+      <div id="saveUpper2Loading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
+      <div class="bonus-modal-actions">
+        <button id="saveUpper2Settings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
+        <button id="closeUpper2SettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
       </div>
     </div>
   </div>
@@ -476,8 +505,10 @@
         <button id="closeRegionSettings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
       </div>
       <div id="regionBonusEditGrid" class="region-edit-grid"></div>
+      <div id="saveRegionLoading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
       <div class="bonus-modal-actions">
         <button id="saveRegionSettings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
+        <button id="closeRegionSettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
       </div>
     </div>
   </div>
@@ -541,9 +572,6 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     const BONUS_API_URL = 'https://script.google.com/macros/s/AKfycbz3mOVD9QFCXkUoD1ecc-5E9OE0fN0IMsb-5ZP72PdTh6M57l7LuFrgSP7pwGn7P3fx/exec';
 
     const calculatorTitleEl = document.getElementById('calculatorTitle') || document.querySelector('h1');
-    const visitorStatsEl = document.getElementById('visitorStats');
-    const visitorTodayEl = document.getElementById('visitorToday');
-    const visitorTotalEl = document.getElementById('visitorTotal');
     const calculatorDescEl = document.getElementById('calculatorDesc');
     const bossHpInput = document.getElementById('bossHp');
     const bossOptionsEl = document.getElementById('bossOptions');
@@ -566,6 +594,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     const speed2Input = document.getElementById('speed2');
     const openBonusSettingsBtn = document.getElementById('openBonusSettings');
     const openMinScoreSettingsBtn = document.getElementById('openMinScoreSettings');
+    const openUpper2SettingsBtn = document.getElementById('openUpper2Settings');
     const openStrikeCalculatorBtn = document.getElementById('openStrikeCalculator');
     const openRemainingTimeCalculatorBtn = document.getElementById('openRemainingTimeCalculator');
     const openRegionSettingsBtn = document.getElementById('openRegionSettings');
@@ -581,10 +610,18 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     const closeMinScoreSettingsBtn = document.getElementById('closeMinScoreSettings');
     const saveMinScoreSettingsBtn = document.getElementById('saveMinScoreSettings');
     const minScoreEditGrid = document.getElementById('minScoreEditGrid');
+    const upper2ModalBackdrop = document.getElementById('upper2ModalBackdrop');
+    const closeUpper2SettingsBtn = document.getElementById('closeUpper2Settings');
+    const saveUpper2SettingsBtn = document.getElementById('saveUpper2Settings');
+    const upper2EditGrid = document.getElementById('upper2EditGrid');
     const regionBonusModalBackdrop = document.getElementById('regionBonusModalBackdrop');
     const closeRegionSettingsBtn = document.getElementById('closeRegionSettings');
     const saveRegionSettingsBtn = document.getElementById('saveRegionSettings');
     const regionBonusEditGrid = document.getElementById('regionBonusEditGrid');
+    const saveBonusLoadingEl = document.getElementById('saveBonusLoading');
+    const saveMinScoreLoadingEl = document.getElementById('saveMinScoreLoading');
+    const saveUpper2LoadingEl = document.getElementById('saveUpper2Loading');
+    const saveRegionLoadingEl = document.getElementById('saveRegionLoading');
     const remainingTimeModalBackdrop = document.getElementById('remainingTimeModalBackdrop');
     const closeRemainingTimeCalculatorBtn = document.getElementById('closeRemainingTimeCalculator');
     const remainingCurrentMinInput = document.getElementById('remainingCurrentMin');
@@ -601,6 +638,19 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     let selectedBossKey = 'bananyang';
     let isApplyingBossHpOption = false;
 
+    // Google Sheet의 4가지 공용 데이터가 모두 응답할 때까지 격추 입력값을 노출하지 않는다.
+    // 실패한 요청도 완료로 처리하여 화면이 영구적으로 '불러오는 중'에 머무르지 않게 한다.
+    let isSharedDataLoading = true;
+    const sharedLoadDone = { bonuses: false, minScore: false, upper2: false, region: false };
+    function markSharedLoadDone(key) {
+      sharedLoadDone[key] = true;
+      if (!sharedLoadDone.bonuses || !sharedLoadDone.minScore || !sharedLoadDone.upper2 || !sharedLoadDone.region) return;
+      if (!isSharedDataLoading) return;
+      isSharedDataLoading = false;
+      buildRows();
+      updateView();
+    }
+
     const players = Array.from({ length: MAX_PLAYERS }, (_, index) => ({
       name: GUILD_MEMBERS[index] || `${index + 1}P`,
       active: false,
@@ -612,6 +662,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
       regionBonuses: { pirate: 0, cat: 0, wolf: 0, food: 0 },
       score: 0,
       minScoreBonus: 0,
+      upper2Bonus: 0,
       mode: 'ratio'
     }));
 
@@ -621,6 +672,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function setSaveButtonLoading(isLoading) {
       if (!saveBonusSettingsBtn) return;
       saveBonusSettingsBtn.disabled = !!isLoading;
+      if (saveBonusLoadingEl) saveBonusLoadingEl.classList.toggle('show', !!isLoading);
       saveBonusSettingsBtn.innerHTML = isLoading
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
@@ -628,6 +680,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function setRegionSaveButtonLoading(isLoading) {
       if (!saveRegionSettingsBtn) return;
       saveRegionSettingsBtn.disabled = !!isLoading;
+      if (saveRegionLoadingEl) saveRegionLoadingEl.classList.toggle('show', !!isLoading);
       saveRegionSettingsBtn.innerHTML = isLoading
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
@@ -635,7 +688,16 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function setMinScoreSaveButtonLoading(isLoading) {
       if (!saveMinScoreSettingsBtn) return;
       saveMinScoreSettingsBtn.disabled = !!isLoading;
+      if (saveMinScoreLoadingEl) saveMinScoreLoadingEl.classList.toggle('show', !!isLoading);
       saveMinScoreSettingsBtn.innerHTML = isLoading
+        ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
+        : '저장하기';
+    }
+    function setUpper2SaveButtonLoading(isLoading) {
+      if (!saveUpper2SettingsBtn) return;
+      saveUpper2SettingsBtn.disabled = !!isLoading;
+      if (saveUpper2LoadingEl) saveUpper2LoadingEl.classList.toggle('show', !!isLoading);
+      saveUpper2SettingsBtn.innerHTML = isLoading
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
     }
@@ -673,43 +735,6 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
         document.body.appendChild(script);
       });
     }
-    function formatCount(value) {
-      const n = Number(value);
-      return Number.isFinite(n) ? Math.max(0, Math.floor(n)).toLocaleString('ko-KR') : '-';
-    }
-    function setVisitorStats(stats = {}) {
-      if (visitorTodayEl) visitorTodayEl.textContent = formatCount(stats.today);
-      if (visitorTotalEl) visitorTotalEl.textContent = formatCount(stats.total);
-    }
-    function showVisitorStats() {
-      if (!visitorStatsEl) return;
-      visitorStatsEl.classList.add('show');
-      visitorStatsEl.setAttribute('aria-hidden', 'false');
-    }
-    async function countVisitAndLoadStats() {
-      try {
-        const data = await callBonusApi({ action: 'countVisit' });
-        setVisitorStats(data.visitors || {});
-      } catch (error) {
-        setVisitorStats({ today: '-', total: '-' });
-      }
-    }
-    function bindTitleSecretClicks() {
-      if (!calculatorTitleEl) return;
-      let titleClickCount = 0;
-      let titleClickTimer = null;
-      calculatorTitleEl.addEventListener('click', () => {
-        titleClickCount += 1;
-        clearTimeout(titleClickTimer);
-        titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 1200);
-        if (titleClickCount < 3) return;
-        titleClickCount = 0;
-        clearTimeout(titleClickTimer);
-        showVisitorStats();
-        // 페이지 진입 시 countVisit로 받아둔 today/total 값을 그대로 보여준다.
-        // getVisitStats를 추가 호출하면 시트 날짜 형식 문제로 today가 0으로 덮어써질 수 있어 재호출하지 않는다.
-      });
-    }
     function getBaseBonusMap() {
       return Object.fromEntries(players.map(player => [player.name, numberOrZero(player.baseBonus)]));
     }
@@ -740,6 +765,8 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
         if (showAlert) alert('공용 시트에서 최소 점수 증가값을 불러왔습니다.');
       } catch (error) {
         if (showAlert) alert(error.message);
+      } finally {
+        markSharedLoadDone('minScore');
       }
     }
     async function saveSharedMinScoreBonuses() {
@@ -778,6 +805,63 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
       minScoreModalBackdrop.classList.remove('show');
       minScoreModalBackdrop.setAttribute('aria-hidden', 'true');
     }
+    function applyUpper2BonusMap(upper2Map = {}) {
+      players.forEach(player => {
+        if (Object.prototype.hasOwnProperty.call(upper2Map, player.name)) {
+          player.upper2Bonus = Math.max(0, numberOrZero(upper2Map[player.name]));
+        }
+      });
+      renderUpper2SettingsInputs();
+      updateView();
+    }
+    async function loadSharedUpper2Bonuses(showAlert = false) {
+      try {
+        const data = await callBonusApi({ action: 'getUpper2Bonuses' });
+        applyUpper2BonusMap(data.upper2Bonuses || {});
+        if (showAlert) alert('공용 시트에서 상층2 추가 점수를 불러왔습니다.');
+      } catch (error) {
+        if (showAlert) alert(error.message);
+      } finally {
+        markSharedLoadDone('upper2');
+      }
+    }
+    async function saveSharedUpper2Bonuses() {
+      if (saveUpper2SettingsBtn.disabled) return;
+      setUpper2SaveButtonLoading(true);
+      try {
+        const upper2Map = {};
+        upper2EditGrid.querySelectorAll('.upper2-input').forEach(input => {
+          upper2Map[input.dataset.name] = Math.max(0, numberOrZero(input.value));
+        });
+        applyUpper2BonusMap(upper2Map);
+        const data = await callBonusApi({ action: 'saveUpper2Bonuses', payload: JSON.stringify(upper2Map) });
+        applyUpper2BonusMap(data.upper2Bonuses || upper2Map);
+        alert('상층2 추가 점수가 변경 되었습니다');
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        setUpper2SaveButtonLoading(false);
+      }
+    }
+    function renderUpper2SettingsInputs() {
+      if (!upper2EditGrid) return;
+      upper2EditGrid.innerHTML = players.map(player => `
+        <label class="bonus-edit-item">
+          <span class="bonus-edit-name" title="${player.name}">${player.name}</span>
+          <input class="upper2-input" data-name="${player.name}" type="number" step="0.01" min="0" value="${numberOrZero(player.upper2Bonus)}" />
+        </label>
+      `).join('');
+      upper2EditGrid.querySelectorAll('.upper2-input').forEach(bindZeroClearInput);
+    }
+    function openUpper2Settings() {
+      renderUpper2SettingsInputs();
+      upper2ModalBackdrop.classList.add('show');
+      upper2ModalBackdrop.setAttribute('aria-hidden', 'false');
+    }
+    function closeUpper2Settings() {
+      upper2ModalBackdrop.classList.remove('show');
+      upper2ModalBackdrop.setAttribute('aria-hidden', 'true');
+    }
     function getBlankRegionBonuses() {
       return Object.fromEntries(REGION_BONUS_TYPES.map(region => [region.key, 0]));
     }
@@ -813,6 +897,8 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
         if (showAlert) alert('공용 시트에서 지역 격추값을 불러왔습니다.');
       } catch (error) {
         if (showAlert) alert(error.message);
+      } finally {
+        markSharedLoadDone('region');
       }
     }
     async function saveSharedRegionBonuses() {
@@ -868,6 +954,8 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
       } catch (error) {
         setBonusStatus(`공용 격추값: ${error.message}`);
         if (showAlert) alert(error.message);
+      } finally {
+        markSharedLoadDone('bonuses');
       }
     }
     async function saveSharedBonuses() {
@@ -998,7 +1086,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     }
     function getBossHp() { return Math.max(1, numberOrZero(bossHpInput.value)); }
     function getSpeedMultiplier() { return speedMode === '2' ? 1 - SPEED_2_PENALTY : 1; }
-    function getEffectiveBonus(player) { return numberOrZero(player.bonus) + numberOrZero(serverBattleBonus); }
+    function getEffectiveBonus(player) { return numberOrZero(player.bonus) + numberOrZero(player.upper2Bonus) + numberOrZero(serverBattleBonus); }
     function getTimeCorrectedScoreUnit(seconds) {
       const sec = numberOrZero(seconds);
       const corrected = SCORE_UNIT + ((sec - TIME_CORRECTION_BASE_SECONDS) * TIME_CORRECTION_STEP);
@@ -1256,7 +1344,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
               <div class="battle-row strike-row rank-${i + 1}">
                 <div class="emblem-zone"><span class="crown">👑</span><img class="emblem-img" src="${EMBLEM_SRC}" alt="호랑이 길드 문양" /></div>
                 <div class="member-name" title="${players[i].name}">${players[i].name}</div>
-                <div class="mini"><div class="mini-title">격추</div><div class="bonus-cell-inner"><input class="bonus-input" type="number" step="0.01" value="${players[i].bonus}" /><span class="server-bonus-text"></span></div></div>
+                <div class="mini"><div class="mini-title">격추</div><div class="bonus-cell-inner">${isSharedDataLoading ? '<div class="bonus-loading-label">불러오는 중</div>' : `<input class="bonus-input" type="number" step="0.01" value="${players[i].bonus}" />`}<span class="server-bonus-text"></span></div></div>
                 <div class="mini"><div class="mini-title">지역격추</div><input class="region-bonus-input" type="number" step="0.01" value="${players[i].regionBonus}" /></div>
                 <div class="mini time-mini"><div class="mini-title">시간</div><input class="time-input" type="number" step="1" min="0" value="${players[i].time}" /><div class="time-text">${formatMinuteSecond(players[i].time)}</div></div>
                 <div class="mini"><div class="mini-title">점수</div><input class="score-input" type="number" step="1" min="0" value="${formatNumber(players[i].score).replace(/,/g, '')}" /></div>
@@ -1268,7 +1356,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
               <div class="battle-row rank-${i + 1}">
                 <div class="emblem-zone"><span class="crown">👑</span><img class="emblem-img" src="${EMBLEM_SRC}" alt="호랑이 길드 문양" /></div>
                 <div class="member-name" title="${players[i].name}">${players[i].name}</div>
-                <div class="mini"><div class="mini-title">격추</div><div class="bonus-cell-inner"><input class="bonus-input" type="number" step="0.01" value="${players[i].bonus}" /><span class="server-bonus-text"></span></div></div>
+                <div class="mini"><div class="mini-title">격추</div><div class="bonus-cell-inner">${isSharedDataLoading ? '<div class="bonus-loading-label">불러오는 중</div>' : `<input class="bonus-input" type="number" step="0.01" value="${players[i].bonus}" />`}<span class="server-bonus-text"></span></div></div>
                 <div class="mini"><div class="mini-title">비율</div><input class="ratio-input" type="number" step="0.01" value="${formatRatio(players[i].ratio)}" /></div>
                 <div class="mini time-mini"><div class="mini-title">시간</div><input class="time-input" type="number" step="1" min="0" value="${players[i].time}" /><div class="time-text">${formatMinuteSecond(players[i].time)}</div></div>
                 <div class="weapon-box">⚔️</div>
@@ -1292,7 +1380,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
         row.style.display = visible ? '' : 'none'; if (!visible) return;
         const result = calculatePlayer(player); totalRatio += result.ratio; totalAssignedHp += result.assignedHp; totalTime += result.time;
         const bonusInput = row.querySelector('.bonus-input'); const ratioInput = row.querySelector('.ratio-input'); const timeInput = row.querySelector('.time-input');
-        if (document.activeElement !== bonusInput) bonusInput.value = player.bonus;
+        if (bonusInput && document.activeElement !== bonusInput) bonusInput.value = player.bonus;
         if (document.activeElement !== ratioInput) ratioInput.value = formatRatio(player.ratio);
         if (document.activeElement !== timeInput) timeInput.value = result.time;
         const serverBonusText = row.querySelector('.server-bonus-text');
@@ -1320,7 +1408,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
         const result = calculateStrikePlayer(player); totalScore += result.score; totalTime += result.time;
         const bonusInput = row.querySelector('.bonus-input'); const regionBonusInput = row.querySelector('.region-bonus-input');
         const timeInput = row.querySelector('.time-input'); const scoreInput = row.querySelector('.score-input');
-        if (document.activeElement !== bonusInput) bonusInput.value = player.bonus;
+        if (bonusInput && document.activeElement !== bonusInput) bonusInput.value = player.bonus;
         if (document.activeElement !== regionBonusInput) regionBonusInput.value = player.regionBonus;
         if (document.activeElement !== timeInput) timeInput.value = result.time;
         if (document.activeElement !== scoreInput) scoreInput.value = Math.round(result.score);
@@ -1383,6 +1471,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     autoTimeMatchInput.addEventListener('click', () => applyBossMatchOnce('time'));
     openBonusSettingsBtn.addEventListener('click', openBonusSettings);
     openMinScoreSettingsBtn.addEventListener('click', openMinScoreSettings);
+    openUpper2SettingsBtn.addEventListener('click', openUpper2Settings);
     openStrikeCalculatorBtn.addEventListener('click', () => setCalculatorMode(calculatorMode === 'strike' ? 'boss' : 'strike'));
     openRemainingTimeCalculatorBtn.addEventListener('click', openRemainingTimeCalculator);
     openRegionSettingsBtn.addEventListener('click', openRegionSettings);
@@ -1390,7 +1479,13 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     bonusModalBackdrop.addEventListener('click', event => { if (event.target === bonusModalBackdrop) closeBonusSettings(); });
     closeMinScoreSettingsBtn.addEventListener('click', closeMinScoreSettings);
     minScoreModalBackdrop.addEventListener('click', event => { if (event.target === minScoreModalBackdrop) closeMinScoreSettings(); });
+    closeUpper2SettingsBtn.addEventListener('click', closeUpper2Settings);
+    upper2ModalBackdrop.addEventListener('click', event => { if (event.target === upper2ModalBackdrop) closeUpper2Settings(); });
     closeRegionSettingsBtn.addEventListener('click', closeRegionSettings);
+    document.getElementById('closeBonusSettingsBottom').addEventListener('click', closeBonusSettings);
+    document.getElementById('closeMinScoreSettingsBottom').addEventListener('click', closeMinScoreSettings);
+    document.getElementById('closeUpper2SettingsBottom').addEventListener('click', closeUpper2Settings);
+    document.getElementById('closeRegionSettingsBottom').addEventListener('click', closeRegionSettings);
     regionBonusModalBackdrop.addEventListener('click', event => { if (event.target === regionBonusModalBackdrop) closeRegionSettings(); });
     closeRemainingTimeCalculatorBtn.addEventListener('click', closeRemainingTimeCalculator);
     remainingTimeModalBackdrop.addEventListener('click', event => { if (event.target === remainingTimeModalBackdrop) closeRemainingTimeCalculator(); });
@@ -1408,8 +1503,9 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     });
     saveBonusSettingsBtn.addEventListener('click', saveSharedBonuses);
     saveMinScoreSettingsBtn.addEventListener('click', saveSharedMinScoreBonuses);
+    saveUpper2SettingsBtn.addEventListener('click', saveSharedUpper2Bonuses);
     saveRegionSettingsBtn.addEventListener('click', saveSharedRegionBonuses);
-    updateSpeedUI(); updateBossMatchUI(); buildBossOptions(); buildServerBonusOptions(); buildRegionOptions(); buildMemberChecks(); updateCalculatorModeUI(); buildRows(); renderBonusSettingsInputs(); renderMinScoreSettingsInputs(); renderRegionSettingsInputs(); bindTitleSecretClicks(); countVisitAndLoadStats(); loadSharedBonuses(false); loadSharedMinScoreBonuses(false); loadSharedRegionBonuses(false);
+    updateSpeedUI(); updateBossMatchUI(); buildBossOptions(); buildServerBonusOptions(); buildRegionOptions(); buildMemberChecks(); updateCalculatorModeUI(); buildRows(); renderBonusSettingsInputs(); renderMinScoreSettingsInputs(); renderUpper2SettingsInputs(); renderRegionSettingsInputs(); loadSharedBonuses(false); loadSharedMinScoreBonuses(false); loadSharedUpper2Bonuses(false); loadSharedRegionBonuses(false);
   </script>
 </body>
 </html>
