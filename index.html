@@ -259,6 +259,17 @@
     .bonus-modal-btn:disabled { cursor:not-allowed; opacity:.82; transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.18); }
     .bonus-spinner { width:16px; height:16px; border:3px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; display:inline-block; vertical-align:-3px; margin-right:7px; animation:bonusSpin .72s linear infinite; }
     @keyframes bonusSpin { to { transform:rotate(360deg); } }
+    .save-loading-panel {
+      display:none; flex-direction:column; align-items:center; justify-content:center; gap:9px;
+      width:100%; padding:12px 0 4px; color:var(--gold2); font-size:15px; font-weight:1000;
+      text-align:center; text-shadow:2px 2px 0 #000;
+    }
+    .save-loading-panel.show { display:flex; }
+    .save-loading-spinner {
+      width:50px; height:50px; border:6px solid rgba(255,255,255,.22); border-top-color:var(--gold2);
+      border-radius:50%; animation:bonusSpin .72s linear infinite;
+      box-shadow:0 0 14px rgba(255,213,106,.25);
+    }
     .bonus-close-btn {
       width:34px; height:34px; border:2px solid #111; border-radius:5px; cursor:pointer; color:#fff; font-size:20px; font-weight:1000;
       background:linear-gradient(180deg,#ff6b6b,#9b1111); text-shadow:2px 2px 0 #000;
@@ -438,6 +449,7 @@
         <button id="closeBonusSettings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
       </div>
       <div id="bonusEditGrid" class="bonus-edit-grid"></div>
+      <div id="saveBonusLoading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
       <div class="bonus-modal-actions">
         <button id="saveBonusSettings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
         <button id="closeBonusSettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
@@ -455,6 +467,7 @@
         <button id="closeMinScoreSettings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
       </div>
       <div id="minScoreEditGrid" class="bonus-edit-grid"></div>
+      <div id="saveMinScoreLoading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
       <div class="bonus-modal-actions">
         <button id="saveMinScoreSettings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
         <button id="closeMinScoreSettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
@@ -468,11 +481,12 @@
         <div>
           <h2 id="upper2ModalTitle" class="bonus-modal-title">상층2 추가 점수 증가 설정</h2>
           <p class="bonus-modal-desc">상층 보스(바나냥, 루나, 루니, 루이) 계산에만 적용되는 추가 격추값입니다.
-차원의 공간의 유령의보물(별고래) 활성화 하신 분만 수치 맞춰서 기입 해주세요</p>
+차원의 공간의 유령의보물(별고래) 활성화 하신 분만 수치 맞춰서 기입 해주세요.</p>
         </div>
         <button id="closeUpper2Settings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
       </div>
       <div id="upper2EditGrid" class="bonus-edit-grid"></div>
+      <div id="saveUpper2Loading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
       <div class="bonus-modal-actions">
         <button id="saveUpper2Settings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
         <button id="closeUpper2SettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
@@ -491,6 +505,7 @@
         <button id="closeRegionSettings" class="bonus-close-btn" type="button" aria-label="닫기">×</button>
       </div>
       <div id="regionBonusEditGrid" class="region-edit-grid"></div>
+      <div id="saveRegionLoading" class="save-loading-panel" aria-live="polite"><span class="save-loading-spinner" aria-hidden="true"></span><span>저장중입니다...</span></div>
       <div class="bonus-modal-actions">
         <button id="saveRegionSettings" class="bonus-modal-btn bonus-save-btn" type="button">저장하기</button>
         <button id="closeRegionSettingsBottom" class="bonus-modal-btn bonus-bottom-close-btn" type="button">닫기</button>
@@ -603,6 +618,10 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     const closeRegionSettingsBtn = document.getElementById('closeRegionSettings');
     const saveRegionSettingsBtn = document.getElementById('saveRegionSettings');
     const regionBonusEditGrid = document.getElementById('regionBonusEditGrid');
+    const saveBonusLoadingEl = document.getElementById('saveBonusLoading');
+    const saveMinScoreLoadingEl = document.getElementById('saveMinScoreLoading');
+    const saveUpper2LoadingEl = document.getElementById('saveUpper2Loading');
+    const saveRegionLoadingEl = document.getElementById('saveRegionLoading');
     const remainingTimeModalBackdrop = document.getElementById('remainingTimeModalBackdrop');
     const closeRemainingTimeCalculatorBtn = document.getElementById('closeRemainingTimeCalculator');
     const remainingCurrentMinInput = document.getElementById('remainingCurrentMin');
@@ -653,6 +672,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function setSaveButtonLoading(isLoading) {
       if (!saveBonusSettingsBtn) return;
       saveBonusSettingsBtn.disabled = !!isLoading;
+      if (saveBonusLoadingEl) saveBonusLoadingEl.classList.toggle('show', !!isLoading);
       saveBonusSettingsBtn.innerHTML = isLoading
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
@@ -660,6 +680,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function setRegionSaveButtonLoading(isLoading) {
       if (!saveRegionSettingsBtn) return;
       saveRegionSettingsBtn.disabled = !!isLoading;
+      if (saveRegionLoadingEl) saveRegionLoadingEl.classList.toggle('show', !!isLoading);
       saveRegionSettingsBtn.innerHTML = isLoading
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
@@ -667,6 +688,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function setMinScoreSaveButtonLoading(isLoading) {
       if (!saveMinScoreSettingsBtn) return;
       saveMinScoreSettingsBtn.disabled = !!isLoading;
+      if (saveMinScoreLoadingEl) saveMinScoreLoadingEl.classList.toggle('show', !!isLoading);
       saveMinScoreSettingsBtn.innerHTML = isLoading
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
@@ -674,6 +696,7 @@ const MEMBER_DEFAULT_BONUS = {'국경':58,'쏘주':89.4,'일2탈':73.9,'hsh92':1
     function setUpper2SaveButtonLoading(isLoading) {
       if (!saveUpper2SettingsBtn) return;
       saveUpper2SettingsBtn.disabled = !!isLoading;
+      if (saveUpper2LoadingEl) saveUpper2LoadingEl.classList.toggle('show', !!isLoading);
       saveUpper2SettingsBtn.innerHTML = isLoading
         ? '<span class="bonus-spinner" aria-hidden="true"></span>저장중입니다'
         : '저장하기';
